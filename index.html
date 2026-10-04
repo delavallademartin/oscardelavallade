@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Les outils d'Oscar</title>
+<style>
+  :root{--bg:#EEF1FA;--ink:#12172E;--card:#FFFFFF;--line:#E1E4EF;--muted:#5E6480;--navy:#12172E;--lime:#C9F24C;--limed:#5E7A00;--soft:#F3F4F9;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0E1322;--ink:#EDF0FA;--card:#171D33;--line:#2A3352;--muted:#AEB6D6;--navy:#0A0E1C;--soft:#141A2E;}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:16px;line-height:1.45;}
+  .wrap{max-width:760px;margin:0 auto;}
+  .band{background:var(--navy);border-radius:16px;padding:20px 22px;position:relative;overflow:hidden;}
+  .kick{color:var(--lime);font-size:11px;letter-spacing:2.5px;font-weight:800;text-transform:uppercase;}
+  h1{color:#fff;margin:5px 0 0;font-size:25px;}
+  .band .sub{color:#CBD2E6;font-size:13px;margin-top:8px;}
+  .ball{position:absolute;right:-28px;top:-28px;width:120px;height:120px;border-radius:50%;background:var(--lime);opacity:.9;}
+  .grid{display:grid;gap:14px;margin-top:18px;}
+  .grid.two{grid-template-columns:1fr 1fr;}
+  @media(max-width:560px){.grid.two{grid-template-columns:1fr;}}
+  .tile{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 20px;cursor:pointer;transition:transform .08s,border-color .12s;}
+  .tile:hover{transform:translateY(-2px);border-color:var(--lime);}
+  .tile .emoji{font-size:30px;}
+  .tile .ttl{font-weight:800;font-size:19px;margin-top:10px;}
+  .tile .desc{color:var(--muted);font-size:13.5px;margin-top:5px;}
+  .tile .accent{height:6px;width:46px;border-radius:6px;background:var(--lime);margin-top:14px;}
+  .back{background:transparent;border:none;color:var(--limed);font-weight:800;font-size:14px;cursor:pointer;padding:8px 0;margin-top:16px;}
+  .secttl{font-size:17px;font-weight:800;margin-top:8px;}
+  .foot{font-size:12px;color:var(--muted);margin:18px 2px;text-align:center;}
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="band">
+    <div class="ball"></div>
+    <div class="kick">Saison 2026-2027</div>
+    <h1>Les outils d'Oscar</h1>
+    <div class="sub">Choisis ce que tu veux faire.</div>
+  </div>
+
+  <!-- ACCUEIL : 2 choix -->
+  <div id="home">
+    <div class="grid two">
+      <a class="tile" href="Reviser_Oscar.html">
+        <div class="emoji">📚</div>
+        <div class="ttl">Réviser</div>
+        <div class="desc">Mes flashcards, par matière et par chapitre. Je me teste, je marque « je savais » ou « à revoir ».</div>
+        <div class="accent"></div>
+      </a>
+      <div class="tile" id="goOrga">
+        <div class="emoji">🎯</div>
+        <div class="ttl">S'organiser</div>
+        <div class="desc">Ma feuille de points, mon bilan du dimanche, et mes récompenses.</div>
+        <div class="accent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S'ORGANISER : 3 choix -->
+  <div id="orga" class="hidden">
+    <button class="back" id="backHome">← Accueil</button>
+    <div class="secttl">S'organiser</div>
+    <div class="grid">
+      <a class="tile" href="Feuille_points_Oscar.html">
+        <div class="emoji">📊</div>
+        <div class="ttl">Ma feuille de points</div>
+        <div class="desc">Je remplis ma semaine (planning, lecture, écrit) et je monte au classement ATP.</div>
+        <div class="accent"></div>
+      </a>
+      <a class="tile" href="Rendez-vous_dimanche_Oscar.html">
+        <div class="emoji">✅</div>
+        <div class="ttl">Le bilan du dimanche</div>
+        <div class="desc">Mon point rapide en 7 questions, avec un smiley par ligne.</div>
+        <div class="accent"></div>
+      </a>
+      <a class="tile" href="Defis_Recompenses_Oscar.html">
+        <div class="emoji">🏆</div>
+        <div class="ttl">Récompenses &amp; défis</div>
+        <div class="desc">Mon classement, les paliers récompense et les défis à débloquer.</div>
+        <div class="accent"></div>
+      </a>
+    </div>
+  </div>
+
+  <div class="foot">Tu joues le match. On fait le bilan le dimanche.</div>
+</div>
+
+<script>
+  var home=document.getElementById('home'), orga=document.getElementById('orga');
+  document.getElementById('goOrga').addEventListener('click',function(){home.classList.add('hidden');orga.classList.remove('hidden');window.scrollTo(0,0);});
+  document.getElementById('backHome').addEventListener('click',function(){orga.classList.add('hidden');home.classList.remove('hidden');window.scrollTo(0,0);});
+</script>
+</body>
+</html>

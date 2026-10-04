@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ma feuille de points — Oscar</title>
+<style>
+  :root{--bg:#EEF1FA;--ink:#12172E;--card:#FFFFFF;--line:#E1E4EF;--muted:#5E6480;--navy:#12172E;--lime:#C9F24C;--limed:#5E7A00;--soft:#F3F4F9;--danger:#D24A3C;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0E1322;--ink:#EDF0FA;--card:#171D33;--line:#2A3352;--muted:#AEB6D6;--navy:#0A0E1C;--soft:#141A2E;}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:16px;line-height:1.4;}
+  .wrap{max-width:920px;margin:0 auto;}
+  a.home{display:inline-block;color:var(--limed);font-weight:800;text-decoration:none;font-size:14px;margin-bottom:10px;}
+  .band{background:var(--navy);border-radius:14px;padding:16px 20px;}
+  .kick{color:var(--lime);font-size:11px;letter-spacing:2px;font-weight:800;text-transform:uppercase;}
+  h1{color:#fff;margin:4px 0 0;font-size:22px;}
+  .band .hint{margin-top:8px;color:#CBD2E6;font-size:12.5px;}
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;}
+  .tab{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink);white-space:nowrap;}
+  .tab.on{background:var(--navy);color:var(--lime);border-color:var(--navy);}
+  .tab.add{border-style:dashed;color:var(--muted);font-weight:800;}
+  .wkhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 4px;}
+  .wkhead input{border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-size:14px;padding:6px 10px;}
+  .wkhead .rng{font-size:13px;font-weight:700;color:var(--limed);}
+  .bar{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 6px;}
+  .chip{background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:5px 11px;font-size:12px;color:var(--muted);}
+  .chip b{color:var(--ink);}
+  .tablewrap{overflow-x:auto;margin-top:10px;border-radius:12px;border:1px solid var(--line);}
+  table{border-collapse:collapse;width:100%;min-width:620px;background:var(--card);}
+  th,td{border:1px solid var(--line);padding:7px 8px;text-align:center;font-size:13px;}
+  thead th{background:var(--navy);color:#fff;font-size:12px;}
+  thead tr:nth-child(2) th{background:#26304F;font-weight:600;font-size:11px;}
+  td.day{background:var(--soft);font-weight:800;text-align:left;white-space:nowrap;}
+  input.n,select.n{width:54px;text-align:center;padding:5px 2px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font-size:14px;}
+  input.note{width:100%;min-width:120px;border:1px solid var(--line);border-radius:7px;padding:5px 7px;background:var(--card);color:var(--ink);font-size:13px;text-align:left;}
+  td.pts{font-weight:800;color:var(--limed);font-size:15px;background:var(--soft);}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px;}
+  .card h2{margin:0 0 10px;font-size:15px;}
+  .row{display:flex;flex-wrap:wrap;gap:16px;align-items:center;}
+  .row label{font-size:13px;display:flex;align-items:center;gap:7px;}
+  .row input[type=number]{width:60px;padding:5px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font-size:14px;}
+  .row select{padding:6px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font-size:14px;}
+  .totals{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:560px){.totals{grid-template-columns:1fr}}
+  .tot{background:var(--soft);border-radius:10px;padding:11px 13px;}
+  .tot .lab{font-size:12px;color:var(--muted);}
+  .tot .val{font-size:26px;font-weight:800;color:var(--ink);}
+  .tot.hi{background:var(--lime);} .tot.hi .lab{color:#3C4A00;} .tot.hi .val{color:#1B2200;}
+  .rankline{margin-top:8px;font-size:13px;color:var(--muted);}
+  .rankname{font-weight:800;color:var(--ink);}
+  .hist td,.hist th{font-size:13px;} .hist tbody tr{cursor:pointer;} .hist tr.cur td{background:var(--soft);}
+  .hist td:first-child{text-align:left;white-space:nowrap;}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+  button{font-family:inherit;font-weight:700;font-size:13px;border-radius:9px;padding:9px 15px;border:none;cursor:pointer;}
+  .b-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
+  .b-del{background:transparent;color:var(--danger);border:1.5px solid var(--danger);}
+  .b-del.armed{background:var(--danger);color:#fff;}
+  .saved{font-size:12px;color:var(--limed);align-self:center;opacity:0;transition:opacity .2s;} .saved.show{opacity:1;}
+  .foot{font-size:12px;color:var(--muted);margin:14px 2px;font-style:italic;}
+  @media print{body{background:#fff;padding:0;}.tabs,.btns,.foot,.bar{display:none;}.band{background:#12172E !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.tot.hi{background:#C9F24C !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="index.html">← Accueil</a>
+  <div class="band">
+    <div class="kick">Classement ATP · ma feuille de points</div>
+    <h1>Ma saison, semaine par semaine</h1>
+    <div class="hint">Chaque semaine est datée du lundi au dimanche. Ajoute-la, remplis-la jour par jour : la suivante se date toute seule, et le total monte en tenant compte de toutes les précédentes.</div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="wkhead">
+    <span style="font-size:13px;color:var(--muted);">Semaine du lundi :</span>
+    <input type="date" id="wkstart">
+    <span class="rng" id="wkrange"></span>
+  </div>
+
+  <div class="bar">
+    <span class="chip">Planning : <b>+1 prévu</b> · <b>+1 fait</b></span>
+    <span class="chip">Lecture ~20 min : <b>+1</b></span>
+    <span class="chip">Écrit soigné : <b>+1</b></span>
+    <span class="chip">Bilan dimanche : <b>+2</b></span>
+    <span class="chip">Livre fini : <b>+5</b></span>
+    <span class="chip">Défi : <b>+10</b></span>
+  </div>
+
+  <div class="tablewrap" id="grid">
+  <table>
+    <thead>
+      <tr><th rowspan="2">Jour</th><th colspan="2">Planning</th>
+        <th rowspan="2">Lecture<br><span style="font-weight:400;font-size:10px">(+1 / session)</span></th>
+        <th rowspan="2">Écrit soigné<br><span style="font-weight:400;font-size:10px">(+1)</span></th>
+        <th rowspan="2">Points</th><th rowspan="2">Note</th></tr>
+      <tr><th>Prévu (+1)</th><th>Fait (+1)</th></tr>
+    </thead>
+    <tbody id="tb"></tbody>
+  </table>
+  </div>
+
+  <div class="card" id="bonuscard">
+    <h2>Les bonus de cette semaine</h2>
+    <div class="row">
+      <label><input type="checkbox" id="b_bilan"> Bilan du dimanche fait <b>(+2)</b></label>
+      <label>Livres terminés <input type="number" min="0" step="1" id="b_livres"> <span class="chip">×5</span></label>
+      <label>Défis réussis <input type="number" min="0" step="1" id="b_defis"> <span class="chip">×10</span></label>
+      <label>Médaille
+        <select id="b_medaille">
+          <option value="0">aucune</option><option value="5">Bronze (+5)</option><option value="10">Argent (+10)</option><option value="20">Or (+20)</option><option value="40">Platine (+40)</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Mon classement</h2>
+    <div class="totals">
+      <div class="tot"><div class="lab">Points de cette semaine</div><div class="val" id="v_week">0</div></div>
+      <div class="tot hi"><div class="lab">Total au classement (fin de cette semaine)</div><div class="val" id="v_total">0</div></div>
+    </div>
+    <div class="rankline">Rang atteint : <span class="rankname" id="v_rank">NC</span> <span id="v_next"></span></div>
+  </div>
+
+  <div class="card hist">
+    <h2>Ma saison</h2>
+    <table>
+      <thead><tr><th style="text-align:left">Semaine</th><th>Points</th><th>Cumulé</th><th>Rang</th></tr></thead>
+      <tbody id="histbody"></tbody>
+    </table>
+  </div>
+
+  <div class="btns">
+    <span class="saved" id="savedmsg">enregistré ✓</span>
+    <button class="b-ghost" id="print">Imprimer / PDF</button>
+    <button class="b-del" id="delweek">Supprimer cette semaine</button>
+  </div>
+  <div class="foot">Astuce : sur ta feuille de planning, surligne au fluo les tâches faites — ici, indique juste combien tu en avais prévu et combien tu en as faites. Tout se sauvegarde dans ton navigateur.</div>
+</div>
+
+<script>
+  var DAYS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+  var RANKS=[["NC",0],["40",10],["30/5",20],["30/4",30],["30/3",45],["30/2",55],["30/1",70],["30",85],
+    ["15/5",105],["15/4",125],["15/3",145],["15/2",165],["15/1",190],["15",215],["5/6",250],["4/6",280],
+    ["3/6",310],["2/6",345],["1/6",380],["0",420],["-2/6",455],["-4/6",495],["-15",535],["-30",580],
+    ["Top 1000",630],["Top 500",680],["Top 250",730],["Top 100",785],["Top 50",840],["Top 25",900],
+    ["Top 10",960],["5e",1020],["4e",1085],["3e",1150],["2e",1220],["1er",1300]];
+  var KEY="oscar-points-v3", START="2026-09-14"; // lundi de la 1re semaine
+
+  function addDays(iso,n){var p=(iso||'').split('-');if(p.length!==3)return '';var d=new Date(+p[0],+p[1]-1,+p[2]);d.setDate(d.getDate()+n);
+    return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+  function ddmm(iso){var p=(iso||'').split('-');if(p.length!==3)return '';return p[2]+'/'+p[1];}
+  function range(start){if(!start)return '(sans date)';return ddmm(start)+' au '+ddmm(addDays(start,6));}
+
+  function emptyWeek(start){var d=[];for(var i=0;i<7;i++)d.push({prevu:'',fait:'',lect:'',ecrit:'',note:''});
+    return {start:start||'',days:d,bonus:{bilan:false,livres:'',defis:'',medaille:'0'}};}
+  var weeks=[emptyWeek(START)], current=0;
+
+  function n(v){var x=parseInt(v,10);return isNaN(x)?0:Math.max(0,x);}
+  function weekPoints(w){var s=0;w.days.forEach(function(d){s+=n(d.prevu)+n(d.fait)+n(d.lect)+n(d.ecrit);});
+    s+=(w.bonus.bilan?2:0)+n(w.bonus.livres)*5+n(w.bonus.defis)*10+n(w.bonus.medaille);return s;}
+  function cumThrough(i){var s=0;for(var k=0;k<=i;k++)s+=weekPoints(weeks[k]);return s;}
+  function rankFor(t){var r=RANKS[0],nx=null;for(var j=0;j<RANKS.length;j++){if(t>=RANKS[j][1])r=RANKS[j];else{nx=RANKS[j];break;}}return{name:r[0],next:nx};}
+  function wlabel(i){return range(weeks[i].start);}
+
+  var tb=document.getElementById("tb");
+  function sel01(id){return '<select class="n" id="'+id+'"><option value="0">0</option><option value="1">1</option></select>';}
+  for(var i=0;i<7;i++){
+    var tr=document.createElement("tr");
+    tr.innerHTML='<td class="day">'+DAYS[i]+'</td>'+
+      '<td>'+sel01('d'+i+'_prevu')+'</td>'+
+      '<td>'+sel01('d'+i+'_fait')+'</td>'+
+      '<td>'+sel01('d'+i+'_lect')+'</td>'+
+      '<td>'+sel01('d'+i+'_ecrit')+'</td>'+
+      '<td class="pts" id="p'+i+'">0</td>'+
+      '<td><input class="note" type="text" id="note'+i+'"></td>';
+    tb.appendChild(tr);
+  }
+  function gv(id){return document.getElementById(id).value;}
+  function sv(id,v){document.getElementById(id).value=(v===undefined?'':v);}
+
+  function buildGrid(){
+    var w=weeks[current];
+    sv('wkstart',w.start);document.getElementById('wkrange').textContent=range(w.start);
+    for(var i=0;i<7;i++){sv('d'+i+'_prevu',w.days[i].prevu||'0');sv('d'+i+'_fait',w.days[i].fait||'0');sv('d'+i+'_lect',w.days[i].lect||'0');sv('d'+i+'_ecrit',w.days[i].ecrit||'0');sv('note'+i,w.days[i].note);}
+    document.getElementById('b_bilan').checked=!!w.bonus.bilan;
+    sv('b_livres',w.bonus.livres);sv('b_defis',w.bonus.defis);document.getElementById('b_medaille').value=w.bonus.medaille||'0';
+  }
+  function readDOM(){
+    var w=weeks[current];w.start=gv('wkstart');
+    for(var i=0;i<7;i++){w.days[i]={prevu:gv('d'+i+'_prevu'),fait:gv('d'+i+'_fait'),lect:gv('d'+i+'_lect'),ecrit:gv('d'+i+'_ecrit'),note:gv('note'+i)};}
+    w.bonus={bilan:document.getElementById('b_bilan').checked,livres:gv('b_livres'),defis:gv('b_defis'),medaille:gv('b_medaille')};
+  }
+
+  function renderTabs(){
+    var t=document.getElementById('tabs');t.innerHTML='';
+    weeks.forEach(function(w,i){var b=document.createElement('button');b.className='tab'+(i===current?' on':'');b.textContent=wlabel(i);b.onclick=function(){switchTo(i);};t.appendChild(b);});
+    var add=document.createElement('button');add.className='tab add';add.textContent='+ Ajouter une semaine';add.onclick=addWeek;t.appendChild(add);
+  }
+  function renderHist(){
+    var b=document.getElementById('histbody');b.innerHTML='';
+    weeks.forEach(function(w,i){var pts=weekPoints(w),cum=cumThrough(i),rk=rankFor(cum).name;
+      var tr=document.createElement('tr');if(i===current)tr.className='cur';
+      tr.innerHTML='<td>'+wlabel(i)+'</td><td>'+pts+'</td><td>'+cum+'</td><td>'+rk+'</td>';
+      tr.onclick=function(){switchTo(i);};b.appendChild(tr);});
+  }
+  function updateDerived(){
+    var w=weeks[current];
+    for(var i=0;i<7;i++){var d=w.days[i];document.getElementById('p'+i).textContent=n(d.prevu)+n(d.fait)+n(d.lect)+n(d.ecrit);}
+    var week=weekPoints(w),cum=cumThrough(current),rk=rankFor(cum);
+    document.getElementById('v_week').textContent=week;document.getElementById('v_total').textContent=cum;
+    document.getElementById('v_rank').textContent=rk.name;
+    document.getElementById('v_next').textContent=rk.next?('— encore '+(rk.next[1]-cum)+' pts pour '+rk.next[0]):'— au sommet ! ';
+    document.getElementById('wkrange').textContent=range(w.start);
+    renderTabs();renderHist();
+  }
+
+  function switchTo(i){readDOM();current=i;buildGrid();updateDerived();save();}
+  function addWeek(){readDOM();var last=weeks[weeks.length-1].start;var ns=last?addDays(last,7):START;weeks.push(emptyWeek(ns));current=weeks.length-1;buildGrid();updateDerived();save();}
+
+  function save(){try{readDOM();localStorage.setItem(KEY,JSON.stringify({weeks:weeks,current:current}));flash();}catch(e){}}
+  function flash(){var m=document.getElementById('savedmsg');m.classList.add('show');setTimeout(function(){m.classList.remove('show');},1000);}
+  function normalize(){var dt=START;weeks.forEach(function(w,i){if(!w.start){w.start=dt;}dt=addDays(w.start,7);if(!w.days||w.days.length!==7){var d=[];for(var k=0;k<7;k++)d.push({prevu:'',fait:'',lect:'',ecrit:'',note:''});w.days=d;}if(!w.bonus)w.bonus={bilan:false,livres:'',defis:'',medaille:'0'};});}
+  function load(){
+    try{var s=localStorage.getItem(KEY);if(s){var o=JSON.parse(s);if(o.weeks&&o.weeks.length){weeks=o.weeks;current=Math.min(o.current||0,weeks.length-1);normalize();return;}}}catch(e){}
+    try{var v1=localStorage.getItem("oscar-points-v1");if(v1){var o1=JSON.parse(v1);var inp=o1.inputs||o1;var w=emptyWeek(START);
+      for(var i=0;i<7;i++){w.days[i]={prevu:inp['d'+i+'_prevu']||'',fait:inp['d'+i+'_fait']||'',lect:inp['d'+i+'_lect']||'',ecrit:inp['d'+i+'_ecrit']||'',note:inp['d'+i+'_note']||''};}
+      w.bonus={bilan:!!inp.b_bilan,livres:inp.b_livres||'',defis:inp.b_defis||'',medaille:inp.b_medaille||'0'};weeks=[w];current=0;}}catch(e){}
+  }
+
+  document.getElementById('grid').addEventListener('input',function(){readDOM();updateDerived();save();});
+  document.getElementById('grid').addEventListener('change',function(){readDOM();updateDerived();save();});
+  document.getElementById('bonuscard').addEventListener('input',function(){readDOM();updateDerived();save();});
+  document.getElementById('bonuscard').addEventListener('change',function(){readDOM();updateDerived();save();});
+  document.getElementById('wkstart').addEventListener('input',function(){readDOM();updateDerived();save();});
+  document.getElementById('print').addEventListener('click',function(){window.print();});
+
+  var del=document.getElementById('delweek'),armed=false,tmr=null;
+  del.addEventListener('click',function(){
+    if(!armed){armed=true;del.classList.add('armed');del.textContent='Cliquer encore pour confirmer';tmr=setTimeout(function(){armed=false;del.classList.remove('armed');del.textContent='Supprimer cette semaine';},4000);return;}
+    clearTimeout(tmr);armed=false;del.classList.remove('armed');del.textContent='Supprimer cette semaine';
+    weeks.splice(current,1);if(!weeks.length)weeks.push(emptyWeek(START));if(current>=weeks.length)current=weeks.length-1;
+    buildGrid();updateDerived();save();
+  });
+
+  load();buildGrid();updateDerived();
+</script>
+</body>
+</html>

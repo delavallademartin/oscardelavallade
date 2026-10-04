@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Réviser — Oscar</title>
+<!-- Librairie Supabase (ne sert qu'en mode synchronisé ; ignorée en mode local) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{--bg:#EEF1FA;--ink:#12172E;--card:#FFFFFF;--line:#E1E4EF;--muted:#5E6480;--navy:#12172E;--lime:#C9F24C;--limed:#5E7A00;--soft:#F3F4F9;--happy:#2E9E5B;--sad:#D24A3C;--amber:#E0A11B;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0E1322;--ink:#EDF0FA;--card:#171D33;--line:#2A3352;--muted:#AEB6D6;--navy:#0A0E1C;--soft:#141A2E;}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:16px;line-height:1.45;}
+  .wrap{max-width:860px;margin:0 auto;}
+  a.home{display:inline-block;color:var(--limed);font-weight:800;text-decoration:none;font-size:14px;margin-bottom:10px;}
+  .band{background:var(--navy);border-radius:14px;padding:16px 20px;}
+  .kick{color:var(--lime);font-size:11px;letter-spacing:2px;font-weight:800;text-transform:uppercase;}
+  h1{color:#fff;margin:4px 0 0;font-size:22px;}
+  .mode{margin-top:10px;font-size:12px;color:#CBD2E6;}
+  .mode b{color:var(--lime);}
+  .back{background:transparent;border:none;color:var(--limed);font-weight:700;font-size:13px;cursor:pointer;padding:6px 0;margin-top:12px;}
+  .crumb{font-size:13px;color:var(--muted);margin-top:2px;}
+  h2{font-size:19px;margin:6px 0 2px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:14px;}
+  .tile{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card);cursor:pointer;position:relative;min-height:84px;}
+  .tile .t-nom{font-weight:800;font-size:15px;}
+  .tile .t-sub{font-size:12px;color:var(--muted);margin-top:6px;}
+  .tile .bar{height:6px;border-radius:6px;margin:-14px -14px 10px;border-top-left-radius:11px;border-top-right-radius:11px;}
+  .tile.add{display:flex;align-items:center;justify-content:center;border-style:dashed;color:var(--muted);font-weight:800;}
+  .x{position:absolute;top:8px;right:9px;border:1px solid var(--line);background:var(--card);color:var(--sad);border-radius:7px;font-size:11px;font-weight:700;padding:3px 7px;cursor:pointer;}
+  .x.armed{background:var(--sad);color:#fff;border-color:var(--sad);}
+  .form{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px;}
+  .form input,.form textarea,.form select{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-size:14px;padding:9px 11px;margin-top:6px;}
+  .form textarea{min-height:52px;resize:vertical;}
+  .form label{font-size:12px;color:var(--muted);font-weight:700;}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;}
+  button.act{font-family:inherit;font-weight:700;font-size:14px;border-radius:9px;padding:10px 16px;border:none;cursor:pointer;}
+  .b-primary{background:var(--lime);color:#1B2200;}
+  .b-navy{background:var(--navy);color:#fff;}
+  .b-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
+  .b-primary[disabled],.b-navy[disabled]{opacity:.4;cursor:not-allowed;}
+  .clist{margin-top:14px;}
+  .crow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;background:var(--card);}
+  .crow .r{flex:1;font-size:13.5px;}
+  .pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+  .pill.rev{background:#FBE6CE;color:#8A5A00;} .pill.su{background:#E1F3E7;color:#1E6B3C;}
+  .mini{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;font-size:12px;font-weight:700;padding:5px 9px;cursor:pointer;}
+  .mini.del{color:var(--sad);} .mini.del.armed{background:var(--sad);color:#fff;border-color:var(--sad);}
+  /* review */
+  .rev-prog{font-size:13px;color:var(--muted);margin-top:10px;}
+  .flash{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 22px;margin-top:12px;min-height:150px;display:flex;flex-direction:column;justify-content:center;}
+  .flash .side{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:800;}
+  .flash .txt{font-size:19px;margin-top:10px;white-space:pre-wrap;}
+  .flash hr{border:none;border-top:1px dashed var(--line);margin:16px 0;}
+  .flashcard{border-radius:18px;padding:28px 24px;margin-top:12px;min-height:210px;display:flex;flex-direction:column;justify-content:center;}
+  .flashcard.front{background:#1F6B47;color:#fff;cursor:pointer;}
+  .flashcard.back{background:#C9F24C;color:#14331F;}
+  .fpill{align-self:flex-start;background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:11px;letter-spacing:.5px;padding:5px 12px;border-radius:20px;}
+  .bpill{align-self:flex-start;background:rgba(20,51,31,.14);color:#14331F;font-weight:800;font-size:11px;letter-spacing:.5px;padding:5px 12px;border-radius:20px;}
+  .fq{font-size:20px;font-weight:800;margin-top:14px;white-space:pre-wrap;line-height:1.35;}
+  .ba{font-size:23px;font-weight:800;margin-top:12px;white-space:pre-wrap;line-height:1.35;}
+  .hint2{text-align:center;color:var(--muted);font-size:13px;margin-top:16px;}
+  .ans2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+  .ans2 button{border-radius:12px;padding:16px;font-weight:800;font-size:16px;border:none;cursor:pointer;}
+  .ans2 .b-revoir{background:#fff;color:#14331F;border:1.5px solid var(--line);}
+  .ans2 .b-savais{background:#1F6B47;color:#fff;}
+  .ans2 button[disabled]{opacity:.4;cursor:not-allowed;}
+  .revnav{display:flex;justify-content:space-between;margin-top:16px;font-size:13px;}
+  .revnav a{color:var(--muted);font-weight:700;cursor:pointer;}
+  .revnav a.dis{opacity:.4;pointer-events:none;}
+  .revnav a.pass{text-decoration:underline;}
+  .err{background:#FBE3E0;color:#8A2A1E;border-radius:10px;padding:10px 13px;margin-top:12px;font-size:13px;}
+  .note{font-size:12px;color:var(--muted);margin-top:14px;}
+  @media print{.back,.btns,.x,.mini,.tile.add{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="index.html">← Accueil</a>
+  <div class="band">
+    <div class="kick">Réviser · mes flashcards</div>
+    <h1>Réviser</h1>
+    <div class="mode" id="mode"></div>
+  </div>
+  <div id="err"></div>
+  <div id="app"></div>
+</div>
+
+<script>
+  /* ====== CONFIGURATION SUPABASE ======
+     Laisse ces deux lignes vides pour utiliser le mode LOCAL (données sur cet appareil).
+     Pour SYNCHRONISER : colle l'URL de ton projet et ta clé "anon public" / "publishable". */
+  const SUPABASE_URL = "";
+  const SUPABASE_ANON_KEY = "";
+  /* ===================================== */
+
+  function uuid(){return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(16).slice(2);}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  var PALETTE=["#3A57B8","#2C7A46","#B7791F","#6B46C1","#2C7A7B","#C2410C","#BE185D","#0E7490"];
+  var SUBJECTS=[
+    {nom:"SVT",couleur:"#2E9E5B"},
+    {nom:"Histoire-Géographie",couleur:"#D97706"},
+    {nom:"Mathématiques",couleur:"#2563EB"},
+    {nom:"Français",couleur:"#DC2626"},
+    {nom:"Physique-Chimie",couleur:"#7C3AED"},
+    {nom:"DNL-Physique",couleur:"#0891B2"},
+    {nom:"Enseignement scientifique",couleur:"#0D9488"},
+    {nom:"Anglais",couleur:"#4F46E5"},
+    {nom:"Espagnol",couleur:"#DB2777"}
+  ];
+
+  /* ---------- Stockage LOCAL (navigateur) ---------- */
+  function makeLocalDB(){
+    var K="oscar-reviser-v1", data=load();
+    function load(){try{var s=localStorage.getItem(K);if(s)return JSON.parse(s);}catch(e){}return {matieres:[],chapitres:[],cartes:[]};}
+    function save(){try{localStorage.setItem(K,JSON.stringify(data));}catch(e){}}
+    return {
+      mode:'local',
+      getMatieres:async function(){return data.matieres.slice();},
+      addMatiere:async function(nom,couleur){var m={id:uuid(),nom:nom,couleur:couleur,created_at:Date.now()};data.matieres.push(m);save();return m;},
+      deleteMatiere:async function(id){var ch=data.chapitres.filter(function(c){return c.matiere_id===id;}).map(function(c){return c.id;});
+        data.matieres=data.matieres.filter(function(m){return m.id!==id;});data.chapitres=data.chapitres.filter(function(c){return c.matiere_id!==id;});
+        data.cartes=data.cartes.filter(function(k){return ch.indexOf(k.chapitre_id)<0;});save();},
+      getChapitres:async function(mid){return data.chapitres.filter(function(c){return c.matiere_id===mid;});},
+      addChapitre:async function(mid,nom){var c={id:uuid(),matiere_id:mid,nom:nom,created_at:Date.now()};data.chapitres.push(c);save();return c;},
+      deleteChapitre:async function(id){data.chapitres=data.chapitres.filter(function(c){return c.id!==id;});data.cartes=data.cartes.filter(function(k){return k.chapitre_id!==id;});save();},
+      getCounts:async function(mid){var ch=data.chapitres.filter(function(c){return c.matiere_id===mid;});var map={};
+        ch.forEach(function(c){var cc=data.cartes.filter(function(k){return k.chapitre_id===c.id;});map[c.id]={total:cc.length,revoir:cc.filter(function(k){return k.a_revoir;}).length};});return map;},
+      getCartes:async function(cid){return data.cartes.filter(function(k){return k.chapitre_id===cid;});},
+      addCarte:async function(cid,recto,verso){var k={id:uuid(),chapitre_id:cid,recto:recto,verso:verso,a_revoir:true,created_at:Date.now()};data.cartes.push(k);save();return k;},
+      updateCarte:async function(id,f){var k=data.cartes.find(function(x){return x.id===id;});if(k)Object.assign(k,f);save();},
+      deleteCarte:async function(id){data.cartes=data.cartes.filter(function(k){return k.id!==id;});save();},
+      setRevoir:async function(id,b){var k=data.cartes.find(function(x){return x.id===id;});if(k)k.a_revoir=b;save();}
+    };
+  }
+
+  /* ---------- Stockage CLOUD (Supabase) ---------- */
+  function makeCloudDB(client){
+    function chk(r){if(r.error)throw r.error;return r.data;}
+    return {
+      mode:'cloud',
+      getMatieres:async function(){return chk(await client.from('matieres').select('*').order('created_at'));},
+      addMatiere:async function(nom,couleur){return chk(await client.from('matieres').insert({nom:nom,couleur:couleur}).select().single());},
+      deleteMatiere:async function(id){chk(await client.from('matieres').delete().eq('id',id));},
+      getChapitres:async function(mid){return chk(await client.from('chapitres').select('*').eq('matiere_id',mid).order('created_at'));},
+      addChapitre:async function(mid,nom){return chk(await client.from('chapitres').insert({matiere_id:mid,nom:nom}).select().single());},
+      deleteChapitre:async function(id){chk(await client.from('chapitres').delete().eq('id',id));},
+      getCounts:async function(mid){var ch=chk(await client.from('chapitres').select('id').eq('matiere_id',mid));var ids=ch.map(function(c){return c.id;});var map={};ids.forEach(function(id){map[id]={total:0,revoir:0};});
+        if(ids.length){var cards=chk(await client.from('cartes').select('chapitre_id,a_revoir').in('chapitre_id',ids));cards.forEach(function(k){map[k.chapitre_id].total++;if(k.a_revoir)map[k.chapitre_id].revoir++;});}return map;},
+      getCartes:async function(cid){return chk(await client.from('cartes').select('*').eq('chapitre_id',cid).order('created_at'));},
+      addCarte:async function(cid,recto,verso){return chk(await client.from('cartes').insert({chapitre_id:cid,recto:recto,verso:verso,a_revoir:true}).select().single());},
+      updateCarte:async function(id,f){chk(await client.from('cartes').update(f).eq('id',id));},
+      deleteCarte:async function(id){chk(await client.from('cartes').delete().eq('id',id));},
+      setRevoir:async function(id,b){chk(await client.from('cartes').update({a_revoir:b}).eq('id',id));}
+    };
+  }
+
+  var DB, MODE, CONFIGURED=!!(SUPABASE_URL&&SUPABASE_ANON_KEY);
+  function initDB(){
+    if(CONFIGURED&&window.supabase&&window.supabase.createClient){DB=makeCloudDB(window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY));MODE='cloud';return;}
+    DB=makeLocalDB();MODE=CONFIGURED?'fallback':'local';
+  }
+  function showMode(){
+    var el=document.getElementById('mode');
+    if(MODE==='cloud')el.innerHTML='<b>Mode synchronisé</b> — tes données sont dans ta base Supabase, partagées entre tes appareils.';
+    else if(MODE==='fallback')el.innerHTML='<b>Mode local</b> — Supabase est renseigné mais la librairie ne s\'est pas chargée (connexion ?). Données sur cet appareil pour l\'instant.';
+    else el.innerHTML='<b>Mode local</b> — données sur cet appareil. Renseigne Supabase en haut du fichier pour synchroniser.';
+  }
+
+  /* ---------- UI ---------- */
+  var app=document.getElementById('app');
+  var state={view:'matieres',matiere:null,chapitre:null,review:null};
+  function fail(e){document.getElementById('err').innerHTML='<div class="err">Souci avec la base : '+esc(e&&e.message?e.message:e)+'</div>';}
+  function clearErr(){document.getElementById('err').innerHTML='';}
+  async function run(fn){try{clearErr();await fn();}catch(e){fail(e);}}
+
+  function armable(btn,onConfirm){var armed=false,t=null,base=btn.textContent;
+    btn.addEventListener('click',function(ev){ev.stopPropagation();if(!armed){armed=true;btn.classList.add('armed');btn.textContent='Confirmer ?';t=setTimeout(function(){armed=false;btn.classList.remove('armed');btn.textContent=base;},3500);return;}clearTimeout(t);onConfirm();});}
+
+  // ---- Matières ----
+  async function goMatieres(){state.view='matieres';state.matiere=null;state.chapitre=null;
+    var ms=await DB.getMatieres();
+    var h='<h2>Mes matières</h2><div class="grid">';
+    ms.forEach(function(m,idx){var col=m.couleur||PALETTE[idx%PALETTE.length];
+      h+='<div class="tile" data-m="'+m.id+'"><div class="bar" style="background:'+esc(col)+'"></div>'+
+         '<button class="x" data-delm="'+m.id+'">suppr.</button>'+
+         '<div class="t-nom">'+esc(m.nom)+'</div></div>';});
+    h+='<div class="tile add" id="addM">+ Ajouter une matière</div></div>'+
+       '<div id="mform"></div>';
+    app.innerHTML=h;
+    app.querySelectorAll('.tile[data-m]').forEach(function(t){t.addEventListener('click',function(){run(function(){return goChapitres(t.getAttribute('data-m'));});});});
+    app.querySelectorAll('[data-delm]').forEach(function(b){armable(b,function(){run(function(){return DB.deleteMatiere(b.getAttribute('data-delm')).then(goMatieres);});});});
+    document.getElementById('addM').addEventListener('click',function(){
+      var existing=ms.map(function(m){return (m.nom||'').trim().toLowerCase();});
+      var avail=SUBJECTS.filter(function(s){return existing.indexOf(s.nom.toLowerCase())<0;});
+      var opts=avail.map(function(s){return '<option value="'+esc(s.nom)+'">'+esc(s.nom)+'</option>';}).join('')+'<option value="__autre__">Autre…</option>';
+      document.getElementById('mform').innerHTML='<div class="form"><label>Choisis une matière</label><select id="msel">'+opts+'</select><div id="mother"></div><div class="btns"><button class="act b-primary" id="mok">Ajouter</button></div></div>';
+      var sel=document.getElementById('msel');
+      function syncOther(){if(sel.value==='__autre__'){document.getElementById('mother').innerHTML='<label style="margin-top:10px;display:block">Nom de la matière</label><input id="mn" placeholder="ex. Latin" autocomplete="off">';var mn=document.getElementById('mn');mn.focus();mn.addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('mok').click();});}else document.getElementById('mother').innerHTML='';}
+      sel.addEventListener('change',syncOther);syncOther();
+      document.getElementById('mok').addEventListener('click',function(){
+        run(async function(){
+          var nom,couleur;
+          if(sel.value==='__autre__'){var mn=document.getElementById('mn');nom=mn?mn.value.trim():'';if(!nom)return;var cur=await DB.getMatieres();couleur=PALETTE[cur.length%PALETTE.length];}
+          else{nom=sel.value;var s=SUBJECTS.find(function(x){return x.nom===nom;});couleur=s?s.couleur:PALETTE[0];}
+          await DB.addMatiere(nom,couleur);await goMatieres();
+        });
+      });
+    });
+  }
+
+  // ---- Chapitres ----
+  async function goChapitres(mid){
+    var ms=await DB.getMatieres();state.matiere=ms.find(function(m){return m.id===mid;})||{id:mid,nom:'Matière'};
+    state.view='chapitres';state.chapitre=null;
+    var chaps=await DB.getChapitres(mid);var counts=await DB.getCounts(mid);
+    var h='<button class="back" id="bk">← Mes matières</button><h2>'+esc(state.matiere.nom)+'</h2><div class="crumb">Ses chapitres</div><div class="grid">';
+    chaps.forEach(function(c){var ct=counts[c.id]||{total:0,revoir:0};
+      h+='<div class="tile" data-c="'+c.id+'"><button class="x" data-delc="'+c.id+'">suppr.</button>'+
+         '<div class="t-nom">'+esc(c.nom)+'</div><div class="t-sub">'+ct.total+' carte'+(ct.total>1?'s':'')+' · <b style="color:var(--amber)">'+ct.revoir+' à revoir</b></div></div>';});
+    h+='<div class="tile add" id="addC">+ Ajouter un chapitre</div></div><div id="cform"></div>';
+    app.innerHTML=h;
+    document.getElementById('bk').addEventListener('click',function(){run(goMatieres);});
+    app.querySelectorAll('.tile[data-c]').forEach(function(t){t.addEventListener('click',function(){run(function(){return goChapitre(t.getAttribute('data-c'));});});});
+    app.querySelectorAll('[data-delc]').forEach(function(b){armable(b,function(){run(function(){return DB.deleteChapitre(b.getAttribute('data-delc')).then(function(){return goChapitres(mid);});});});});
+    document.getElementById('addC').addEventListener('click',function(){
+      document.getElementById('cform').innerHTML='<div class="form"><label>Nom du chapitre</label><input id="cn" placeholder="ex. Les fonctions dérivées" autocomplete="off"><div class="btns"><button class="act b-primary" id="cok">Ajouter</button></div></div>';
+      var inp=document.getElementById('cn');inp.focus();
+      document.getElementById('cok').addEventListener('click',function(){var v=inp.value.trim();if(!v)return;run(function(){return DB.addChapitre(mid,v).then(function(){return goChapitres(mid);});});});
+      inp.addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('cok').click();});
+    });
+  }
+
+  // ---- Chapitre (cartes) ----
+  async function goChapitre(cid){
+    state.view='chapitre';
+    var chaps=await DB.getChapitres(state.matiere.id);state.chapitre=chaps.find(function(c){return c.id===cid;})||{id:cid,nom:'Chapitre'};
+    var cards=await DB.getCartes(cid);var rev=cards.filter(function(k){return k.a_revoir;}).length;
+    var h='<button class="back" id="bk">← '+esc(state.matiere.nom)+'</button><h2>'+esc(state.chapitre.nom)+'</h2>'+
+      '<div class="crumb">'+cards.length+' carte'+(cards.length>1?'s':'')+' · '+rev+' à revoir</div>'+
+      '<div class="btns">'+
+        '<button class="act b-navy" id="revRev"'+(rev?'':' disabled')+'>Réviser les cartes à revoir ('+rev+')</button>'+
+        '<button class="act b-ghost" id="revAll"'+(cards.length?'':' disabled')+'>Réviser tout ('+cards.length+')</button>'+
+        '<button class="act b-primary" id="addK">+ Ajouter une carte</button>'+
+      '</div><div id="kform"></div><div class="clist" id="clist"></div>';
+    app.innerHTML=h;
+    document.getElementById('bk').addEventListener('click',function(){run(function(){return goChapitres(state.matiere.id);});});
+    document.getElementById('revRev').addEventListener('click',function(){run(function(){return startReview(cid,true);});});
+    document.getElementById('revAll').addEventListener('click',function(){run(function(){return startReview(cid,false);});});
+    document.getElementById('addK').addEventListener('click',function(){
+      document.getElementById('kform').innerHTML='<div class="form"><label>Recto (la question)</label><textarea id="kr" placeholder="ex. Quelle est la dérivée de x² ?"></textarea><label style="margin-top:8px;display:block">Verso (la réponse)</label><textarea id="kv" placeholder="ex. 2x"></textarea><div class="btns"><button class="act b-primary" id="kok">Ajouter la carte</button></div></div>';
+      document.getElementById('kr').focus();
+      document.getElementById('kok').addEventListener('click',function(){var r=document.getElementById('kr').value.trim(),v=document.getElementById('kv').value.trim();if(!r||!v)return;run(function(){return DB.addCarte(cid,r,v).then(function(){return goChapitre(cid);});});});
+    });
+    // liste des cartes
+    var cl=document.getElementById('clist');cl.innerHTML='';
+    cards.forEach(function(k){var row=document.createElement('div');row.className='crow';
+      row.innerHTML='<span class="r">'+esc(k.recto)+'</span>'+
+        '<span class="pill '+(k.a_revoir?'rev':'su')+'">'+(k.a_revoir?'à revoir':'su')+'</span>'+
+        '<button class="mini del" data-del="'+k.id+'">suppr.</button>';
+      cl.appendChild(row);
+      armable(row.querySelector('[data-del]'),function(){run(function(){return DB.deleteCarte(k.id).then(function(){return goChapitre(cid);});});});
+    });
+    if(!cards.length)cl.innerHTML='<div class="note">Aucune carte pour l\'instant. Ajoute ta première question !</div>';
+  }
+
+  // ---- Révision ----
+  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  async function startReview(cid,onlyRevoir){
+    var cards=await DB.getCartes(cid);if(onlyRevoir)cards=cards.filter(function(k){return k.a_revoir;});
+    if(!cards.length){return goChapitre(cid);}
+    state.review={deck:shuffle(cards.slice()),i:0,onlyRevoir:onlyRevoir,cid:cid,su:0,rev:0};
+    renderReview(false);
+  }
+  function renderReview(showAnswer){
+    var R=state.review;
+    if(R.i>=R.deck.length){
+      var rep=R.su+R.rev;
+      app.innerHTML='<button class="back" id="bk">← '+esc(state.chapitre.nom)+'</button>'+
+        '<div class="flash"><div class="side">Terminé</div><div class="txt">Tu as répondu à '+rep+' carte'+(rep>1?'s':'')+'.<br>✅ '+R.su+' sue'+(R.su>1?'s':'')+' · 🔁 '+R.rev+' à revoir</div></div>'+
+        '<div class="btns"><button class="act b-primary" id="again">Recommencer</button><button class="act b-ghost" id="done">Retour au chapitre</button></div>';
+      document.getElementById('bk').addEventListener('click',function(){run(function(){return goChapitre(R.cid);});});
+      document.getElementById('again').addEventListener('click',function(){run(function(){return startReview(R.cid,R.onlyRevoir);});});
+      document.getElementById('done').addEventListener('click',function(){run(function(){return goChapitre(R.cid);});});
+      return;
+    }
+    var k=R.deck[R.i];
+    var h='<button class="back" id="bk">← Quitter la révision</button>'+
+      '<div class="rev-prog">Carte '+(R.i+1)+' / '+R.deck.length+'</div>';
+    if(!showAnswer){
+      h+='<div class="flashcard front" id="card"><span class="fpill">Question</span><div class="fq">'+esc(k.recto)+'</div></div>'+
+         '<div class="hint2">Touche la carte pour voir la réponse</div>'+
+         '<div class="ans2"><button class="b-revoir" disabled>À revoir</button><button class="b-savais" disabled>Je savais</button></div>';
+    }else{
+      h+='<div class="flashcard back" id="card"><span class="bpill">Réponse</span><div class="ba">'+esc(k.verso)+'</div></div>'+
+         '<div class="hint2">Tu le savais ?</div>'+
+         '<div class="ans2"><button class="b-revoir" id="rev">À revoir</button><button class="b-savais" id="su">Je savais</button></div>';
+    }
+    h+='<div class="revnav"><a id="prev" class="'+(R.i===0?'dis':'')+'">← Précédente</a><a id="pass" class="pass">Passer →</a></div>';
+    app.innerHTML=h;
+    document.getElementById('bk').addEventListener('click',function(){run(function(){return goChapitre(R.cid);});});
+    if(!showAnswer){document.getElementById('card').addEventListener('click',function(){renderReview(true);});}
+    else{
+      document.getElementById('su').addEventListener('click',function(){answer(false);});
+      document.getElementById('rev').addEventListener('click',function(){answer(true);});
+    }
+    if(R.i>0)document.getElementById('prev').addEventListener('click',function(){R.i--;renderReview(false);});
+    document.getElementById('pass').addEventListener('click',function(){R.i++;renderReview(false);});
+  }
+  function answer(aRevoir){
+    var R=state.review,k=R.deck[R.i];
+    if(aRevoir)R.rev++;else R.su++;
+    run(async function(){await DB.setRevoir(k.id,aRevoir);R.i++;renderReview(false);});
+  }
+
+  // ---- démarrage ----
+  initDB();showMode();run(goMatieres);
+  window.__app={get DB(){return DB;},goMatieres:goMatieres};
+</script>
+</body>
+</html>

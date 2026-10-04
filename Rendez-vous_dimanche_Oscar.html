@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le rendez-vous du dimanche — Oscar</title>
+<style>
+  :root{--bg:#EEF1FA;--ink:#12172E;--card:#FFFFFF;--line:#E1E4EF;--muted:#5E6480;--navy:#12172E;--lime:#C9F24C;--limed:#5E7A00;--soft:#F3F4F9;
+    --happy:#2E9E5B;--neutral:#E0A11B;--sad:#D24A3C;--danger:#D24A3C;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0E1322;--ink:#EDF0FA;--card:#171D33;--line:#2A3352;--muted:#AEB6D6;--navy:#0A0E1C;--soft:#141A2E;}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:16px;line-height:1.45;}
+  .wrap{max-width:760px;margin:0 auto;}
+  a.home{display:inline-block;color:var(--limed);font-weight:800;text-decoration:none;font-size:14px;margin-bottom:10px;}
+  .band{background:var(--navy);border-radius:14px;padding:16px 20px;}
+  .kick{color:var(--lime);font-size:11px;letter-spacing:2px;font-weight:800;text-transform:uppercase;}
+  h1{color:#fff;margin:4px 0 0;font-size:22px;}
+  .hint{margin-top:8px;color:#CBD2E6;font-size:12.5px;}
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;}
+  .tab{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink);}
+  .tab.on{background:var(--navy);color:var(--lime);border-color:var(--navy);}
+  .tab.add{border-style:dashed;color:var(--muted);font-weight:800;}
+  .wkhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 2px;}
+  .wkhead input{border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-size:14px;padding:6px 10px;}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 15px;margin-top:11px;}
+  .q{font-weight:700;font-size:14px;margin-bottom:9px;}
+  .q .num{color:var(--limed);}
+  .smrow{display:flex;gap:10px;align-items:center;}
+  .sm{width:44px;height:44px;border:2px solid transparent;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.33;background:transparent;padding:0;transition:opacity .12s,transform .12s;}
+  .sm svg{width:29px;height:29px;}
+  .sm.happy{color:var(--happy);} .sm.neutral{color:var(--neutral);} .sm.sad{color:var(--sad);}
+  .sm:hover{opacity:.75;}
+  .sm.sel{opacity:1;border-color:currentColor;transform:scale(1.06);}
+  .note{width:100%;margin-top:9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;padding:7px 10px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px;}
+  .card h2{margin:0 0 10px;font-size:15px;}
+  table{border-collapse:collapse;width:100%;}
+  th,td{border:1px solid var(--line);padding:7px 9px;font-size:13px;text-align:left;}
+  th{background:var(--navy);color:#fff;font-size:12px;}
+  tbody tr{cursor:pointer;} tbody tr.cur td{background:var(--soft);}
+  .dots{display:flex;gap:4px;}
+  .dot{width:12px;height:12px;border-radius:50%;background:var(--line);}
+  .dot.happy{background:var(--happy);} .dot.neutral{background:var(--neutral);} .dot.sad{background:var(--sad);}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+  button.act{font-family:inherit;font-weight:700;font-size:13px;border-radius:9px;padding:9px 15px;border:none;cursor:pointer;}
+  .b-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
+  .b-del{background:transparent;color:var(--danger);border:1.5px solid var(--danger);}
+  .b-del.armed{background:var(--danger);color:#fff;}
+  .saved{font-size:12px;color:var(--limed);align-self:center;opacity:0;transition:opacity .2s;} .saved.show{opacity:1;}
+  .foot{font-size:12px;color:var(--muted);margin:14px 2px;font-style:italic;}
+  @media print{body{background:#fff;padding:0;}.tabs,.btns,.foot{display:none;}.band{background:#12172E !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="index.html">← Accueil</a>
+  <div class="band">
+    <div class="kick">15 minutes, ensemble · chaque dimanche</div>
+    <h1>Le rendez-vous du dimanche</h1>
+    <div class="hint">Ajoute un dimanche : sa date se met automatiquement au dimanche suivant (tu peux la corriger). Réponds aux 7 questions avec un smiley, et note un mot si tu veux.</div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="wkhead">
+    <span style="font-size:13px;color:var(--muted);">Date de ce dimanche :</span>
+    <input type="date" id="wkdate">
+  </div>
+
+  <div id="items"></div>
+
+  <div class="card">
+    <h2>Ma saison de bilans</h2>
+    <table>
+      <thead><tr><th style="width:44%">Dimanche</th><th>Mes 7 réponses</th></tr></thead>
+      <tbody id="histbody"></tbody>
+    </table>
+  </div>
+
+  <div class="btns">
+    <span class="saved" id="savedmsg">enregistré ✓</span>
+    <button class="act b-ghost" id="print">Imprimer / PDF</button>
+    <button class="act b-del" id="delweek">Supprimer ce dimanche</button>
+  </div>
+  <div class="foot">Pense à cocher « Bilan du dimanche fait » sur ta feuille de points (+2). Ce n'est pas un interrogatoire — juste un point rapide, ensemble.</div>
+</div>
+
+<script>
+  var QS=[
+    "Mon planning était-il bien construit ?",
+    "Ai-je réussi à travailler autant que je voulais ?",
+    "Ai-je mis des éléments à revoir dans ma pochette ?",
+    "Ai-je revu les éléments « à revoir » de ma pochette ?",
+    "Ai-je lu cette semaine ?",
+    "Ai-je travaillé mon écriture ?",
+    "Suis-je satisfait de ma semaine de tennis ?"
+  ];
+  var KEY="oscar-dimanche-v3", START="2026-09-20";
+  var EYES='<circle cx="9" cy="10" r="0.7" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="0.7" fill="currentColor" stroke="none"/>';
+  var MOUTH={happy:'<path d="M8 14.3c1 1.6 2.4 2.3 4 2.3s3-.7 4-2.3"/>',neutral:'<path d="M8.5 15h7"/>',sad:'<path d="M8 16.4c1-1.6 2.4-2.3 4-2.3s3 .7 4 2.3"/>'};
+  function face(m){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/>'+EYES+MOUTH[m]+'</svg>';}
+
+  function addDays(iso,n){var p=(iso||'').split('-');if(p.length!==3)return '';var d=new Date(+p[0],+p[1]-1,+p[2]);d.setDate(d.getDate()+n);
+    return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+  function ddmm(iso){var p=(iso||'').split('-');if(p.length!==3)return '(sans date)';return p[2]+'/'+p[1];}
+
+  function emptyWeek(date){return {date:date||'',items:QS.map(function(){return {mood:null,note:''};})};}
+  var weeks=[emptyWeek(START)], current=0;
+
+  var wrap=document.getElementById('items');
+  QS.forEach(function(q,i){
+    var div=document.createElement('div');div.className='item';
+    div.innerHTML='<div class="q"><span class="num">'+(i+1)+'.</span> '+q+'</div>'+
+      '<div class="smrow">'+
+        '<button class="sm happy" data-i="'+i+'" data-m="happy" title="Content">'+face('happy')+'</button>'+
+        '<button class="sm neutral" data-i="'+i+'" data-m="neutral" title="Moyen">'+face('neutral')+'</button>'+
+        '<button class="sm sad" data-i="'+i+'" data-m="sad" title="Pas content">'+face('sad')+'</button>'+
+      '</div>'+
+      '<input class="note" id="note'+i+'" type="text" placeholder="Préciser ma pensée (facultatif)">';
+    wrap.appendChild(div);
+  });
+
+  function buildForm(){
+    var w=weeks[current];
+    document.getElementById('wkdate').value=w.date||'';
+    for(var i=0;i<7;i++){
+      document.getElementById('note'+i).value=w.items[i].note;
+      document.querySelectorAll('.sm[data-i="'+i+'"]').forEach(function(b){b.classList.toggle('sel',b.getAttribute('data-m')===w.items[i].mood);});
+    }
+  }
+  function wlabel(i){return ddmm(weeks[i].date);}
+
+  function renderTabs(){
+    var t=document.getElementById('tabs');t.innerHTML='';
+    weeks.forEach(function(w,i){var b=document.createElement('button');b.className='tab'+(i===current?' on':'');
+      b.textContent=wlabel(i);b.onclick=function(){switchTo(i);};t.appendChild(b);});
+    var a=document.createElement('button');a.className='tab add';a.textContent='+ Ajouter un dimanche';a.onclick=addWeek;t.appendChild(a);
+  }
+  function renderHist(){
+    var b=document.getElementById('histbody');b.innerHTML='';
+    weeks.forEach(function(w,i){
+      var dots=w.items.map(function(it){return '<span class="dot '+(it.mood||'')+'"></span>';}).join('');
+      var tr=document.createElement('tr');if(i===current)tr.className='cur';
+      tr.innerHTML='<td>'+wlabel(i)+'</td><td><div class="dots">'+dots+'</div></td>';
+      tr.onclick=function(){switchTo(i);};b.appendChild(tr);
+    });
+  }
+  function refresh(){renderTabs();renderHist();}
+
+  function switchTo(i){current=i;buildForm();refresh();save();}
+  function addWeek(){var last=weeks[weeks.length-1].date;var nd=last?addDays(last,7):START;
+    weeks.push(emptyWeek(nd));current=weeks.length-1;buildForm();refresh();save();}
+
+  function save(){try{localStorage.setItem(KEY,JSON.stringify({weeks:weeks,current:current}));flash();}catch(e){}}
+  function flash(){var m=document.getElementById('savedmsg');m.classList.add('show');setTimeout(function(){m.classList.remove('show');},1000);}
+  function load(){
+    try{var s=localStorage.getItem(KEY);if(s){var o=JSON.parse(s);if(o.weeks&&o.weeks.length){weeks=o.weeks;current=Math.min(o.current||0,weeks.length-1);
+      weeks.forEach(function(w){if(!w.items||w.items.length!==7)w.items=QS.map(function(){return {mood:null,note:''};});});return;}}}catch(e){}
+    // migrate old label-based version, assigning sequential Sundays from START
+    try{var v2=localStorage.getItem("oscar-dimanche-v2");if(v2){var o2=JSON.parse(v2);if(o2.weeks&&o2.weeks.length){
+      var dt=START;weeks=o2.weeks.map(function(w){var nw={date:dt,items:(w.items&&w.items.length===7)?w.items:QS.map(function(){return {mood:null,note:''};})};dt=addDays(dt,7);return nw;});
+      current=Math.min(o2.current||0,weeks.length-1);}}}catch(e){}
+  }
+
+  document.getElementById('items').addEventListener('click',function(e){
+    var b=e.target.closest('.sm');if(!b)return;
+    var i=+b.getAttribute('data-i'),m=b.getAttribute('data-m'),cur=weeks[current].items[i].mood;
+    weeks[current].items[i].mood=(cur===m)?null:m;
+    document.querySelectorAll('.sm[data-i="'+i+'"]').forEach(function(x){x.classList.toggle('sel',x.getAttribute('data-m')===weeks[current].items[i].mood);});
+    renderHist();save();
+  });
+  document.getElementById('items').addEventListener('input',function(e){
+    if(!e.target.classList.contains('note'))return;
+    var i=+e.target.id.replace('note','');weeks[current].items[i].note=e.target.value;save();
+  });
+  document.getElementById('wkdate').addEventListener('input',function(e){weeks[current].date=e.target.value;refresh();save();});
+  document.getElementById('print').addEventListener('click',function(){window.print();});
+
+  var del=document.getElementById('delweek'),armed=false,tmr=null;
+  del.addEventListener('click',function(){
+    if(!armed){armed=true;del.classList.add('armed');del.textContent='Cliquer encore pour confirmer';tmr=setTimeout(function(){armed=false;del.classList.remove('armed');del.textContent='Supprimer ce dimanche';},4000);return;}
+    clearTimeout(tmr);armed=false;del.classList.remove('armed');del.textContent='Supprimer ce dimanche';
+    weeks.splice(current,1);if(!weeks.length)weeks.push(emptyWeek(START));if(current>=weeks.length)current=weeks.length-1;
+    buildForm();refresh();save();
+  });
+
+  load();buildForm();refresh();
+</script>
+</body>
+</html>
