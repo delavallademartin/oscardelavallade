@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ma feuille de points — Oscar</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <style>
   :root{--bg:#EEF1FA;--ink:#12172E;--card:#FFFFFF;--line:#E1E4EF;--muted:#5E6480;--navy:#12172E;--lime:#C9F24C;--limed:#5E7A00;--soft:#F3F4F9;--danger:#D24A3C;}
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0E1322;--ink:#EDF0FA;--card:#171D33;--line:#2A3352;--muted:#AEB6D6;--navy:#0A0E1C;--soft:#141A2E;}}
@@ -84,8 +85,8 @@
     <span class="chip">Lecture ~20 min : <b>+1</b></span>
     <span class="chip">Écrit soigné : <b>+1</b></span>
     <span class="chip">Bilan dimanche : <b>+2</b></span>
-    <span class="chip">Livre fini : <b>+5</b></span>
-    <span class="chip">Défi : <b>+10</b></span>
+    <span class="chip">Livre fini : <b>+10</b></span>
+    <span class="chip">Défi : <b>+5</b></span>
   </div>
 
   <div class="tablewrap" id="grid">
@@ -105,8 +106,8 @@
     <h2>Les bonus de cette semaine</h2>
     <div class="row">
       <label><input type="checkbox" id="b_bilan"> Bilan du dimanche fait <b>(+2)</b></label>
-      <label>Livres terminés <input type="number" min="0" step="1" id="b_livres"> <span class="chip">×5</span></label>
-      <label>Défis réussis <input type="number" min="0" step="1" id="b_defis"> <span class="chip">×10</span></label>
+      <label>Livres terminés <input type="number" min="0" step="1" id="b_livres"> <span class="chip">×10</span></label>
+      <label>Défis réussis <input type="number" min="0" step="1" id="b_defis"> <span class="chip">×5</span></label>
       <label>Médaille
         <select id="b_medaille">
           <option value="0">aucune</option><option value="5">Bronze (+5)</option><option value="10">Argent (+10)</option><option value="20">Or (+20)</option><option value="40">Platine (+40)</option>
@@ -149,9 +150,9 @@
     ["Top 10",960],["5e",1020],["4e",1085],["3e",1150],["2e",1220],["1er",1300]];
   var KEY="oscar-points-v3", START="2026-09-14"; // lundi de la 1re semaine
   /* ====== CONFIGURATION SUPABASE ======
-     Laisse vide = mode local. Colle ton URL + ta clé (comme pour Réviser) pour synchroniser. */
-  const SUPABASE_URL = "https://kfdsndtcjbwifjtbskuq.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmZHNuZHRjamJ3aWZqdGJza3VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExNDc3OTYsImV4cCI6MjEwNjcyMzc5Nn0.5baz6m1EpNEM2mc9P4WoubN0xyPjunKgTIrQjhuFLcM";
+     Les identifiants sont dans config.js (à remplir une seule fois). */
+  var SUPABASE_URL = window.SUPABASE_URL || "";
+  var SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "";
   /* ===================================== */
   var CLE="points";var cloudHadData=false;
   var sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
@@ -172,7 +173,7 @@
 
   function n(v){var x=parseInt(v,10);return isNaN(x)?0:Math.max(0,x);}
   function weekPoints(w){var s=0;w.days.forEach(function(d){s+=n(d.prevu)+n(d.fait)+n(d.lect)+n(d.ecrit);});
-    s+=(w.bonus.bilan?2:0)+n(w.bonus.livres)*5+n(w.bonus.defis)*10+n(w.bonus.medaille);return s;}
+    s+=(w.bonus.bilan?2:0)+n(w.bonus.livres)*10+n(w.bonus.defis)*5+n(w.bonus.medaille);return s;}
   function cumThrough(i){var s=0;for(var k=0;k<=i;k++)s+=weekPoints(weeks[k]);return s;}
   function rankFor(t){var r=RANKS[0],nx=null;for(var j=0;j<RANKS.length;j++){if(t>=RANKS[j][1])r=RANKS[j];else{nx=RANKS[j];break;}}return{name:r[0],next:nx};}
   function wlabel(i){return range(weeks[i].start);}

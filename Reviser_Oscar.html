@@ -6,6 +6,7 @@
 <title>Réviser — Oscar</title>
 <!-- Librairie Supabase (ne sert qu'en mode synchronisé ; ignorée en mode local) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <style>
   :root{--bg:#EEF1FA;--ink:#12172E;--card:#FFFFFF;--line:#E1E4EF;--muted:#5E6480;--navy:#12172E;--lime:#C9F24C;--limed:#5E7A00;--soft:#F3F4F9;--happy:#2E9E5B;--sad:#D24A3C;--amber:#E0A11B;}
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0E1322;--ink:#EDF0FA;--card:#171D33;--line:#2A3352;--muted:#AEB6D6;--navy:#0A0E1C;--soft:#141A2E;}}
@@ -88,10 +89,9 @@
 
 <script>
   /* ====== CONFIGURATION SUPABASE ======
-     Laisse ces deux lignes vides pour utiliser le mode LOCAL (données sur cet appareil).
-     Pour SYNCHRONISER : colle l'URL de ton projet et ta clé "anon public" / "publishable". */
-  const SUPABASE_URL = "https://kfdsndtcjbwifjtbskuq.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmZHNuZHRjamJ3aWZqdGJza3VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExNDc3OTYsImV4cCI6MjEwNjcyMzc5Nn0.5baz6m1EpNEM2mc9P4WoubN0xyPjunKgTIrQjhuFLcM";
+     Les identifiants sont dans config.js (à remplir une seule fois). */
+  var SUPABASE_URL = window.SUPABASE_URL || "";
+  var SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "";
   /* ===================================== */
 
   function uuid(){return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(16).slice(2);}

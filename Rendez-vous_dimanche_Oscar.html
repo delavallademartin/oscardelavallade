@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Le rendez-vous du dimanche — Oscar</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <style>
   :root{--bg:#EEF1FA;--ink:#12172E;--card:#FFFFFF;--line:#E1E4EF;--muted:#5E6480;--navy:#12172E;--lime:#C9F24C;--limed:#5E7A00;--soft:#F3F4F9;
     --happy:#2E9E5B;--neutral:#E0A11B;--sad:#D24A3C;--danger:#D24A3C;}
@@ -99,9 +100,9 @@
   ];
   var KEY="oscar-dimanche-v3", START="2026-09-20";
   /* ====== CONFIGURATION SUPABASE ======
-     Laisse vide = mode local. Colle ton URL + ta clé (comme pour Réviser) pour synchroniser. */
-  const SUPABASE_URL = "https://kfdsndtcjbwifjtbskuq.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmZHNuZHRjamJ3aWZqdGJza3VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExNDc3OTYsImV4cCI6MjEwNjcyMzc5Nn0.5baz6m1EpNEM2mc9P4WoubN0xyPjunKgTIrQjhuFLcM";
+     Les identifiants sont dans config.js (à remplir une seule fois). */
+  var SUPABASE_URL = window.SUPABASE_URL || "";
+  var SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "";
   /* ===================================== */
   var CLE="bilan";var cloudHadData=false;
   var sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
