@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ma feuille de points — Oscar</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{--bg:#EEF1FA;--ink:#12172E;--card:#FFFFFF;--line:#E1E4EF;--muted:#5E6480;--navy:#12172E;--lime:#C9F24C;--limed:#5E7A00;--soft:#F3F4F9;--danger:#D24A3C;}
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0E1322;--ink:#EDF0FA;--card:#171D33;--line:#2A3352;--muted:#AEB6D6;--navy:#0A0E1C;--soft:#141A2E;}}
@@ -67,6 +68,7 @@
     <div class="kick">Classement ATP · ma feuille de points</div>
     <h1>Ma saison, semaine par semaine</h1>
     <div class="hint">Chaque semaine est datée du lundi au dimanche. Ajoute-la, remplis-la jour par jour : la suivante se date toute seule, et le total monte en tenant compte de toutes les précédentes.</div>
+    <div id="sync" style="margin-top:7px;font-size:12px;color:#CBD2E6"></div>
   </div>
 
   <div class="tabs" id="tabs"></div>
@@ -146,6 +148,18 @@
     ["Top 1000",630],["Top 500",680],["Top 250",730],["Top 100",785],["Top 50",840],["Top 25",900],
     ["Top 10",960],["5e",1020],["4e",1085],["3e",1150],["2e",1220],["1er",1300]];
   var KEY="oscar-points-v3", START="2026-09-14"; // lundi de la 1re semaine
+  /* ====== CONFIGURATION SUPABASE ======
+     Laisse vide = mode local. Colle ton URL + ta clé (comme pour Réviser) pour synchroniser. */
+  const SUPABASE_URL = "";
+  const SUPABASE_ANON_KEY = "";
+  /* ===================================== */
+  var CLE="points";var cloudHadData=false;
+  var sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+  async function cloudLoad(){if(!sb)return null;try{var r=await sb.from('etat_outils').select('donnee').eq('cle',CLE).maybeSingle();if(r.error)throw r.error;return r.data?r.data.donnee:null;}catch(e){console.warn('cloudLoad',e);return null;}}
+  async function cloudSave(obj){if(!sb)return;try{await sb.from('etat_outils').upsert({cle:CLE,donnee:obj,updated_at:new Date().toISOString()});}catch(e){console.warn('cloudSave',e);}}
+  var _saveT=null;function scheduleCloud(){if(!sb)return;clearTimeout(_saveT);_saveT=setTimeout(function(){cloudSave({weeks:weeks,current:current});},600);}
+  function showSync(){var el=document.getElementById('sync');if(!el)return;el.textContent=sb?'🟢 Mode synchronisé':'🔵 Mode local (cet appareil)';el.style.color=sb?'#C9F24C':'#CBD2E6';}
+
 
   function addDays(iso,n){var p=(iso||'').split('-');if(p.length!==3)return '';var d=new Date(+p[0],+p[1]-1,+p[2]);d.setDate(d.getDate()+n);
     return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
@@ -218,10 +232,11 @@
   function switchTo(i){readDOM();current=i;buildGrid();updateDerived();save();}
   function addWeek(){readDOM();var last=weeks[weeks.length-1].start;var ns=last?addDays(last,7):START;weeks.push(emptyWeek(ns));current=weeks.length-1;buildGrid();updateDerived();save();}
 
-  function save(){try{readDOM();localStorage.setItem(KEY,JSON.stringify({weeks:weeks,current:current}));flash();}catch(e){}}
+  function save(){readDOM();var st={weeks:weeks,current:current};try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}scheduleCloud();flash();}
   function flash(){var m=document.getElementById('savedmsg');m.classList.add('show');setTimeout(function(){m.classList.remove('show');},1000);}
   function normalize(){var dt=START;weeks.forEach(function(w,i){if(!w.start){w.start=dt;}dt=addDays(w.start,7);if(!w.days||w.days.length!==7){var d=[];for(var k=0;k<7;k++)d.push({prevu:'',fait:'',lect:'',ecrit:'',note:''});w.days=d;}if(!w.bonus)w.bonus={bilan:false,livres:'',defis:'',medaille:'0'};});}
-  function load(){
+  async function load(){
+    if(sb){var c=await cloudLoad();if(c&&c.weeks&&c.weeks.length){cloudHadData=true;weeks=c.weeks;current=Math.min(c.current||0,weeks.length-1);normalize();return;}}
     try{var s=localStorage.getItem(KEY);if(s){var o=JSON.parse(s);if(o.weeks&&o.weeks.length){weeks=o.weeks;current=Math.min(o.current||0,weeks.length-1);normalize();return;}}}catch(e){}
     try{var v1=localStorage.getItem("oscar-points-v1");if(v1){var o1=JSON.parse(v1);var inp=o1.inputs||o1;var w=emptyWeek(START);
       for(var i=0;i<7;i++){w.days[i]={prevu:inp['d'+i+'_prevu']||'',fait:inp['d'+i+'_fait']||'',lect:inp['d'+i+'_lect']||'',ecrit:inp['d'+i+'_ecrit']||'',note:inp['d'+i+'_note']||''};}
@@ -243,7 +258,7 @@
     buildGrid();updateDerived();save();
   });
 
-  load();buildGrid();updateDerived();
+  (async function(){showSync();await load();buildGrid();updateDerived();if(sb&&!cloudHadData){cloudSave({weeks:weeks,current:current});}})();
 </script>
 </body>
 </html>

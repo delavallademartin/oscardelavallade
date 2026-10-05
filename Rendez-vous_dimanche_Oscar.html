@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Le rendez-vous du dimanche — Oscar</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{--bg:#EEF1FA;--ink:#12172E;--card:#FFFFFF;--line:#E1E4EF;--muted:#5E6480;--navy:#12172E;--lime:#C9F24C;--limed:#5E7A00;--soft:#F3F4F9;
     --happy:#2E9E5B;--neutral:#E0A11B;--sad:#D24A3C;--danger:#D24A3C;}
@@ -58,6 +59,7 @@
     <div class="kick">15 minutes, ensemble · chaque dimanche</div>
     <h1>Le rendez-vous du dimanche</h1>
     <div class="hint">Ajoute un dimanche : sa date se met automatiquement au dimanche suivant (tu peux la corriger). Réponds aux 7 questions avec un smiley, et note un mot si tu veux.</div>
+    <div id="sync" style="margin-top:7px;font-size:12px;color:#CBD2E6"></div>
   </div>
 
   <div class="tabs" id="tabs"></div>
@@ -96,6 +98,18 @@
     "Suis-je satisfait de ma semaine de tennis ?"
   ];
   var KEY="oscar-dimanche-v3", START="2026-09-20";
+  /* ====== CONFIGURATION SUPABASE ======
+     Laisse vide = mode local. Colle ton URL + ta clé (comme pour Réviser) pour synchroniser. */
+  const SUPABASE_URL = "";
+  const SUPABASE_ANON_KEY = "";
+  /* ===================================== */
+  var CLE="bilan";var cloudHadData=false;
+  var sb=(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+  async function cloudLoad(){if(!sb)return null;try{var r=await sb.from('etat_outils').select('donnee').eq('cle',CLE).maybeSingle();if(r.error)throw r.error;return r.data?r.data.donnee:null;}catch(e){console.warn('cloudLoad',e);return null;}}
+  async function cloudSave(obj){if(!sb)return;try{await sb.from('etat_outils').upsert({cle:CLE,donnee:obj,updated_at:new Date().toISOString()});}catch(e){console.warn('cloudSave',e);}}
+  var _saveT=null;function scheduleCloud(){if(!sb)return;clearTimeout(_saveT);_saveT=setTimeout(function(){cloudSave({weeks:weeks,current:current});},600);}
+  function showSync(){var el=document.getElementById('sync');if(!el)return;el.textContent=sb?'🟢 Mode synchronisé':'🔵 Mode local (cet appareil)';el.style.color=sb?'#C9F24C':'#CBD2E6';}
+
   var EYES='<circle cx="9" cy="10" r="0.7" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="0.7" fill="currentColor" stroke="none"/>';
   var MOUTH={happy:'<path d="M8 14.3c1 1.6 2.4 2.3 4 2.3s3-.7 4-2.3"/>',neutral:'<path d="M8.5 15h7"/>',sad:'<path d="M8 16.4c1-1.6 2.4-2.3 4-2.3s3 .7 4 2.3"/>'};
   function face(m){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/>'+EYES+MOUTH[m]+'</svg>';}
@@ -151,9 +165,10 @@
   function addWeek(){var last=weeks[weeks.length-1].date;var nd=last?addDays(last,7):START;
     weeks.push(emptyWeek(nd));current=weeks.length-1;buildForm();refresh();save();}
 
-  function save(){try{localStorage.setItem(KEY,JSON.stringify({weeks:weeks,current:current}));flash();}catch(e){}}
+  function save(){var st={weeks:weeks,current:current};try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}scheduleCloud();flash();}
   function flash(){var m=document.getElementById('savedmsg');m.classList.add('show');setTimeout(function(){m.classList.remove('show');},1000);}
-  function load(){
+  async function load(){
+    if(sb){var c=await cloudLoad();if(c&&c.weeks&&c.weeks.length){cloudHadData=true;weeks=c.weeks;current=Math.min(c.current||0,weeks.length-1);weeks.forEach(function(w){if(!w.items||w.items.length!==7)w.items=QS.map(function(){return {mood:null,note:''};});});return;}}
     try{var s=localStorage.getItem(KEY);if(s){var o=JSON.parse(s);if(o.weeks&&o.weeks.length){weeks=o.weeks;current=Math.min(o.current||0,weeks.length-1);
       weeks.forEach(function(w){if(!w.items||w.items.length!==7)w.items=QS.map(function(){return {mood:null,note:''};});});return;}}}catch(e){}
     // migrate old label-based version, assigning sequential Sundays from START
@@ -184,7 +199,7 @@
     buildForm();refresh();save();
   });
 
-  load();buildForm();refresh();
+  (async function(){showSync();await load();buildForm();refresh();if(sb&&!cloudHadData){cloudSave({weeks:weeks,current:current});}})();
 </script>
 </body>
 </html>
